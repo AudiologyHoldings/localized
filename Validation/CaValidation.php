@@ -28,7 +28,8 @@ class CaValidation extends LocalizedValidation {
  * @return bool Success.
  */
 	public static function postal($check) {
-		$pattern = '/\\A\\b[ABCEGHJKLMNPRSTVXY][0-9][A-Z] [0-9][A-Z][0-9]\\b\\z/i';
+		//$pattern = '/\\A\\b[ABCEGHJKLMNPRSTVXY][0-9][A-Z] [0-9][A-Z][0-9]\\b\\z/i'; // Spaces required
+		$pattern = '/^([ABCEGHJKLMNPRSTVXY]\d[ABCEGHJKLMNPRSTVWXYZ])\ {0,1}(\d[ABCEGHJKLMNPRSTVWXYZ]\d)$/i'; // Spaces optional
 		return (bool)preg_match($pattern, $check);
 	}
 
@@ -37,10 +38,26 @@ class CaValidation extends LocalizedValidation {
  *
  * @param string $check The value to check.
  * @return bool Success.
- * @throws NotImplementedException
  */
 	public static function phone($check) {
-		throw new NotImplementedException('Validation method not implemented yet.');
+        	// includes all NANPA members. – pulled from CakePHP default Validation class
+                // see http://en.wikipedia.org/wiki/North_American_Numbering_Plan#List_of_NANPA_countries_and_territories
+                $pattern = '/^(?:(?:\+?1\s*(?:[.-]\s*)?)?';
+
+                // Area code 555, X11 is not allowed.
+                $areaCode = '(?![2-9]11)(?!555)([2-9][0-8][0-9])';
+                $pattern .= '(?:\(\s*' . $areaCode . '\s*\)|' . $areaCode . ')';
+                $pattern .= '\s*(?:[.-]\s*)?)';
+
+                // Exchange and 555-XXXX numbers
+                $pattern .= '(?!(555(?:\s*(?:[.\-\s]\s*))(01([0-9][0-9])|1212)))';
+                $pattern .= '(?!(555(01([0-9][0-9])|1212)))';
+                $pattern .= '([2-9]1[02-9]|[2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)';
+
+                // Local number and extension
+                $pattern .= '?([0-9]{4})';
+                $pattern .= '(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/';
+                return (bool)preg_match($pattern, $check);
 	}
 
 /**
